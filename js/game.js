@@ -37,7 +37,7 @@
   };
 
   const ROSTER = [
-    { id: "broly", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4"], supreme: "legend" },
+    { id: "broly", forms: ["base", "ssj"], supreme: "legend" },
     { id: "sbroly", forms: ["base", "ssj"], supreme: "legend" },
     { id: "goku", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue", "kk20"], supreme: "ui" },
     { id: "vegeta", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue", "bluefp"], supreme: "ue" },
@@ -696,7 +696,7 @@
         });
       } else if (kind === "dirt") {
         const side = Math.random() < 0.5 ? -1 : 1;
-        const origin = blast ? W * 0.5 : bodyCx;
+        const origin = blast && charBox.w ? blastOrigin().handX : (blast ? W * 0.5 : bodyCx);
         const spread = blast ? W * 0.4 : bodyW;
         particles.push({
           kind, layer: Math.random() < 0.6 ? "back" : "front",
@@ -710,7 +710,7 @@
         });
       } else if (kind === "rock") {
         const side = Math.random() < 0.5 ? -1 : 1;
-        const origin = blast ? W * 0.5 : bodyCx;
+        const origin = blast && charBox.w ? blastOrigin().handX : (blast ? W * 0.5 : bodyCx);
         const spread = blast ? W * 0.32 : bodyW;
         rocks.push({
           x: origin + side * spread * (0.2 + Math.random() * 0.8),
@@ -972,16 +972,43 @@
   function blastProfile() {
     const f = form();
     const [ar, ag, ab] = f.aura;
-    if (selected === "goku") return { kind: "beam", r: 70, g: 170, b: 255, lift: 0.18, hx: 0.5, hy: 0.5, handSep: 0.05 };
-    if (selected === "vegeta") return { kind: "galick", r: 168, g: 62, b: 255, lift: 0.38, hx: 0.64, hy: 0.62, handSep: 0.045 };
-    if (selected === "gohan") return { kind: "masenko", r: 255, g: 210, b: 70, lift: 0.1, hx: 0.5, hy: 0.16, handSep: 0.04 };
-    if (selected === "broly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1, hx: 0.52, hy: 0.46, handSep: 0.06 };
-    if (selected === "sbroly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1, hx: 0.7, hy: 0.48, handSep: 0.05 };
-    if (selected === "black") return { kind: "slash", r: 255, g: 72, b: 168, lift: 0.16, hx: 0.5, hy: 0.5, handSep: 0.05 };
-    if (selected === "cell") return { kind: "spiral", r: 255, g: 228, b: 70, lift: 0.08, hx: 0.68, hy: 0.46, handSep: 0.05 };
-    if (selected === "frieza") return { kind: "deathball", r: 90, g: 40, b: 170, lift: 0.32, hx: 0.58, hy: 0.4, handSep: 0.035 };
-    if (selected === "buu") return { kind: "blob", r: 255, g: 110, b: 190, lift: 0.14, hx: 0.56, hy: 0.48, handSep: 0.06 };
-    return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.28, hx: 0.62, hy: 0.46, handSep: 0.05 };
+    if (selected === "goku") return {
+      kind: "beam", r: 70, g: 190, b: 255, lift: 0.06, aim: "fwd",
+      hx: 0.90, hy: 0.33, h1x: 0.86, h1y: 0.33, h2x: 0.94, h2y: 0.33,
+    };
+    if (selected === "vegeta") return {
+      kind: "galick", r: 176, g: 70, b: 255, lift: 0.22, aim: "side",
+      hx: 0.86, hy: 0.40, h1x: 0.84, h1y: 0.39, h2x: 0.90, h2y: 0.40,
+    };
+    if (selected === "gohan") return {
+      kind: "masenko", r: 255, g: 220, b: 80, lift: 0.04, aim: "fwd",
+      hx: 0.76, hy: 0.21, h1x: 0.74, h1y: 0.20, h2x: 0.78, h2y: 0.22,
+    };
+    if (selected === "broly") return {
+      kind: "cannon", r: 110, g: 255, b: 80, lift: 0.05, aim: "fwd",
+      hx: 0.88, hy: 0.30, h1x: 0.84, h1y: 0.30, h2x: 0.92, h2y: 0.30,
+    };
+    if (selected === "sbroly") return {
+      kind: "cannon", r: 120, g: 255, b: 70, lift: 0.05, aim: "fwd",
+      hx: 0.80, hy: 0.32, h1x: 0.74, h1y: 0.32, h2x: 0.86, h2y: 0.32,
+    };
+    if (selected === "black") return {
+      kind: "slash", r: 255, g: 80, b: 180, lift: 0.05, aim: "fwd",
+      hx: 0.82, hy: 0.34, h1x: 0.74, h1y: 0.34, h2x: 0.90, h2y: 0.34,
+    };
+    if (selected === "cell") return {
+      kind: "spiral", r: 255, g: 236, b: 80, lift: 0.05, aim: "fwd",
+      hx: 0.84, hy: 0.31, h1x: 0.80, h1y: 0.28, h2x: 0.88, h2y: 0.34,
+    };
+    if (selected === "frieza") return {
+      kind: "deathball", r: 150, g: 70, b: 255, lift: 0.04, aim: "fwd",
+      hx: 0.44, hy: 0.33, h1x: 0.40, h1y: 0.38, h2x: 0.48, h2y: 0.28,
+    };
+    if (selected === "buu") return {
+      kind: "blob", r: 255, g: 120, b: 200, lift: 0.05, aim: "fwd",
+      hx: 0.70, hy: 0.36, h1x: 0.62, h1y: 0.36, h2x: 0.78, h2y: 0.36,
+    };
+    return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.08, aim: "fwd", hx: 0.5, hy: 0.48, h1x: 0.42, h1y: 0.48, h2x: 0.58, h2y: 0.48 };
   }
 
   function fireBlast() {
@@ -989,7 +1016,7 @@
     const p = blastProfile();
     blast = {
       t: 0, kind: p.kind, r: p.r, g: p.g, b: p.b, lift: p.lift,
-      hx: p.hx, hy: p.hy, handSep: p.handSep,
+      hx: p.hx, hy: p.hy, h1x: p.h1x, h1y: p.h1y, h2x: p.h2x, h2y: p.h2y, aim: p.aim,
       hit: false, launched: false,
       dirt: 0, pebbles: 0,
       sfx: [
@@ -1029,43 +1056,61 @@
     playBlastSfx();
 
     if (blast.t < BLAST_WIND) {
-      shake = 2.2 + (blast.t / BLAST_WIND) * 3.4;
-      if (Math.random() < 0.4) burst("aura", 1);
+      const p = blast.t / BLAST_WIND;
+      shake = 2.8 + p * 7.5;
+      stopGlow = 0.35 + p * 0.7;
+      if (Math.random() < 0.55) burst("aura", 2);
+      sparkHands(p > 0.45 ? 3 : 2);
+      if (Math.random() < 0.2) {
+        const o = blastOrigin();
+        energyWaves.push({ x: o.handX, y: o.handY, r: 8, grow: 4 + p * 6, life: 1, rgb: [blast.r, blast.g, blast.b] });
+      }
+      if (Math.random() < 0.12) rumble(p > 0.7 ? 18 : 8);
     } else if (!blast.launched) {
       blast.launched = true;
-      camTarget = 1.14;
-      shake = 6;
+      camTarget = 1.2;
+      shake = 12;
       stopAuraLoops();
-      rumble(30);
-      burst("aura", 4);
-      burst("dust", 3);
+      rumble([40, 20, 55]);
+      burst("aura", 10);
+      burst("dust", 8);
+      sparkHands(10);
+      spawnRing();
     }
 
     if (blast.launched && !blast.hit) {
-      shake = 6 + (blast.t - BLAST_WIND) * 4;
+      shake = 12 + (blast.t - BLAST_WIND) * 8;
+      stopGlow = 0.85;
+      if (Math.random() < 0.5) sparkHands(2);
     }
 
     if (blast.t >= BLAST_HIT_AT && !blast.hit) {
       blast.hit = true;
       blast.hitAt = blast.t;
-      camTarget = 1.18;
-      shake = 11;
-      blast.dirt = 18;
-      blast.pebbles = 8;
-      rumble([50, 30, 90]);
-      burst("aura", 8);
-      spawnLines(8);
+      camTarget = 1.32;
+      shake = 22;
+      blast.dirt = 36;
+      blast.pebbles = 16;
+      rumble([90, 40, 140, 50, 100]);
+      burst("aura", 22);
+      burst("dust", 18);
+      burst("rock", 10);
+      spawnLines(26);
+      spawnRing();
+      spawnRing();
+      sparkHands(18);
     }
 
     if (blast.hit) {
       const age = blast.t - blast.hitAt;
-      if (age < 0.22) flash = (age / 0.22) * 0.88;
-      else if (age < 0.62) flash = 0.88;
-      else if (age < 1.25) flash = 0.88 * (1 - (age - 0.62) / 0.63);
+      shake = Math.max(shake, 20 * Math.max(0, 1 - age / 1.05));
+      if (age < 0.16) flash = (age / 0.16) * 1;
+      else if (age < 0.55) flash = 1;
+      else if (age < 1.45) flash = 1 * (1 - (age - 0.55) / 0.9);
       if (blast.dirt > 0) {
-        const n = Math.min(3, blast.dirt);
+        const n = Math.min(4, blast.dirt);
         burst("dirt", n);
-        burst("dust", 2);
+        burst("dust", 3);
         blast.dirt -= n;
       }
       if (blast.pebbles > 0) {
@@ -1410,17 +1455,18 @@
 
   function drawLines() {
     if (!lines.length) return;
-    const cx = W / 2;
-    const cy = H * 0.45;
+    const o = blast ? blastOrigin() : null;
+    const cx = o ? o.handX : W / 2;
+    const cy = o ? o.handY : H * 0.45;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    ctx.strokeStyle = blast ? `rgba(${blast.r},${blast.g},${blast.b},0.55)` : "rgba(255,255,255,0.22)";
     for (const ln of lines) {
-      ctx.globalAlpha = ln.life * 0.7;
-      ctx.lineWidth = ln.w * dpr;
+      ctx.globalAlpha = ln.life * 0.85;
+      ctx.lineWidth = ln.w * dpr * (blast ? 1.8 : 1);
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(ln.ang) * ln.dist, cy + Math.sin(ln.ang) * ln.dist);
-      ctx.lineTo(cx + Math.cos(ln.ang) * (ln.dist + ln.len), cy + Math.sin(ln.ang) * (ln.dist + ln.len));
+      ctx.lineTo(cx + Math.cos(ln.ang) * (ln.dist + ln.len * (blast ? 1.6 : 1)), cy + Math.sin(ln.ang) * (ln.dist + ln.len * (blast ? 1.6 : 1)));
       ctx.stroke();
     }
     ctx.restore();
@@ -1681,8 +1727,8 @@
   }
 
   function blastOrigin() {
-    const hx = blast && blast.hx != null ? blast.hx : 0.62;
-    const hy = blast && blast.hy != null ? blast.hy : 0.46;
+    const hx = blast && blast.hx != null ? blast.hx : 0.5;
+    const hy = blast && blast.hy != null ? blast.hy : 0.48;
     return {
       cx: charBox.x + charBox.w / 2,
       cy: charBox.y + charBox.h * 0.42,
@@ -1692,37 +1738,64 @@
   }
 
   function blastHandPoints() {
-    const o = blastOrigin();
-    const dx = charBox.w * (blast.handSep || 0.05);
-    const dy = charBox.h * 0.012;
+    if (!blast || !charBox.w) return [];
     return [
-      { x: o.handX - dx, y: o.handY + dy },
-      { x: o.handX + dx, y: o.handY - dy },
+      { x: charBox.x + charBox.w * blast.h1x, y: charBox.y + charBox.h * blast.h1y },
+      { x: charBox.x + charBox.w * blast.h2x, y: charBox.y + charBox.h * blast.h2y },
     ];
+  }
+
+  function sparkHands(n) {
+    if (!blast || !charBox.w) return;
+    const hands = blastHandPoints();
+    const pts = hands.length ? hands : [blastOrigin()];
+    for (let i = 0; i < n; i++) {
+      const p = pts[i % pts.length];
+      const ang = Math.random() * Math.PI * 2;
+      const sp = 1.2 + Math.random() * 5.5;
+      orbSparks.push({
+        x: p.x + (Math.random() - 0.5) * 8,
+        y: p.y + (Math.random() - 0.5) * 8,
+        vx: Math.cos(ang) * sp,
+        vy: Math.sin(ang) * sp - 1.2,
+        life: 1,
+        size: 2.5 + Math.random() * 6,
+        r: Math.min(255, blast.r + 70),
+        g: Math.min(255, blast.g + 70),
+        b: Math.min(255, blast.b + 70),
+      });
+    }
   }
 
   function blastBall() {
     const o = blastOrigin();
-    const lift = blast.lift || 0.28;
+    const lift = blast.lift || 0.06;
+    const fwd = blast.aim !== "side";
     if (blast.t < BLAST_WIND) {
       const p = blast.t / BLAST_WIND;
-      return { x: o.handX, y: o.handY, rad: (12 + p * 58) * dpr, glow: 0.5 + p * 0.5, p: 0 };
+      return { x: o.handX, y: o.handY, rad: (10 + p * 64) * dpr, glow: 0.55 + p * 0.45, p: 0 };
     }
     if (blast.t < BLAST_HIT_AT) {
       const p = (blast.t - BLAST_WIND) / BLAST_FLY;
+      if (fwd) {
+        return { x: o.handX, y: o.handY, rad: (70 + p * 220) * dpr, glow: 1, p };
+      }
       return {
-        x: o.handX + W * 0.32 * p,
+        x: o.handX + W * 0.38 * p,
         y: o.handY - H * lift * p,
-        rad: (66 + p * 28) * dpr,
+        rad: (70 + p * 36) * dpr,
         glow: 1,
         p,
       };
     }
-    const p = Math.min(1, (blast.t - BLAST_HIT_AT) / 0.32);
+    const p = Math.min(1, (blast.t - BLAST_HIT_AT) / 0.42);
+    if (fwd) {
+      return { x: o.handX, y: o.handY, rad: (260 + p * 420) * dpr, glow: Math.max(0, 1 - p * 0.85), p: 1 + p };
+    }
     return {
-      x: o.handX + W * 0.32,
+      x: o.handX + W * 0.38,
       y: o.handY - H * lift,
-      rad: (90 + p * 240) * dpr,
+      rad: (110 + p * 280) * dpr,
       glow: Math.max(0, 1 - p),
       p: 1 + p,
     };
@@ -1745,63 +1818,113 @@
     const ball = blastBall();
     const o = blastOrigin();
     const hands = blastHandPoints();
+    const t = performance.now();
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
     if (blast.t < BLAST_WIND) {
       const p = blast.t / BLAST_WIND;
+      const pulse = 0.82 + Math.sin(t * 0.028) * 0.18;
       for (const h of hands) {
-        fillGlow(h.x, h.y, ball.rad * (0.42 + p * 0.18), r, g, b, ball.glow);
+        fillGlow(h.x, h.y, (10 + p * 22) * dpr * pulse, 255, 255, 255, 0.95);
+        fillGlow(h.x, h.y, (18 + p * 38) * dpr, r, g, b, 0.9);
+        fillGlow(h.x, h.y, (32 + p * 52) * dpr, r, g, b, 0.45);
       }
-      fillGlow(o.handX, o.handY, ball.rad * (0.55 + p * 0.45), r, g, b, ball.glow);
+      if (hands.length === 2) {
+        ctx.strokeStyle = `rgba(255,255,255,${0.35 + p * 0.45})`;
+        ctx.lineWidth = (3 + p * 8) * dpr;
+        ctx.shadowColor = `rgb(${r},${g},${b})`;
+        ctx.shadowBlur = 18 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(hands[0].x, hands[0].y);
+        ctx.lineTo(hands[1].x, hands[1].y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+      fillGlow(o.handX, o.handY, ball.rad * 0.45 * pulse, 255, 255, 255, ball.glow);
+      fillGlow(o.handX, o.handY, ball.rad * pulse, r, g, b, ball.glow);
+      fillGlow(o.handX, o.handY, ball.rad * 1.7, r, g, b, ball.glow * 0.4);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${0.35 + p * 0.4})`;
+      ctx.lineWidth = 2.5 * dpr;
+      for (let i = 0; i < 3; i++) {
+        const rr = ball.rad * (0.7 + i * 0.35 + Math.sin(t * 0.012 + i) * 0.08);
+        ctx.beginPath();
+        ctx.ellipse(o.handX, o.handY, rr, rr * 0.72, t * 0.001 + i, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
       return;
     }
 
-    if (kind === "beam" || kind === "galick" || kind === "masenko" || kind === "cannon" || kind === "spiral") {
-      const ang = Math.atan2(ball.y - o.handY, ball.x - o.handX);
-      const len = Math.max(40, Math.hypot(ball.x - o.handX, ball.y - o.handY) + ball.rad * 0.4);
-      const thick = (kind === "cannon" ? 48 : kind === "spiral" ? 10 : kind === "galick" ? 28 : 22) * dpr;
-      const boom = blast.t >= BLAST_HIT_AT ? 1 + (blast.t - BLAST_HIT_AT) * 5 : 1;
-      ctx.translate(o.handX, o.handY);
-      ctx.rotate(ang);
-      const grd = ctx.createLinearGradient(0, 0, len, 0);
-      grd.addColorStop(0, `rgba(255,255,255,${0.95 * ball.glow})`);
-      grd.addColorStop(0.18, `rgba(${r},${g},${b},${0.92 * ball.glow})`);
-      grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.ellipse(len * 0.5, 0, len * 0.5, thick * boom, 0, 0, Math.PI * 2);
-      ctx.fill();
-      if (kind === "spiral") {
-        ctx.strokeStyle = `rgba(255,255,210,${0.7 * ball.glow})`;
-        ctx.lineWidth = 2 * dpr;
+    const fwd = blast.aim !== "side";
+    if (fwd || kind === "deathball" || kind === "blob") {
+      fillGlow(ball.x, ball.y, ball.rad * 0.22, 255, 255, 255, ball.glow);
+      fillGlow(ball.x, ball.y, ball.rad * 0.55, r, g, b, ball.glow);
+      fillGlow(ball.x, ball.y, ball.rad, r, g, b, ball.glow * 0.75);
+      fillGlow(ball.x, ball.y, ball.rad * 1.55, r, g, b, ball.glow * 0.28);
+      if (kind === "spiral" && blast.t < BLAST_HIT_AT) {
+        ctx.strokeStyle = `rgba(255,255,220,${0.75 * ball.glow})`;
+        ctx.lineWidth = 3 * dpr;
         ctx.beginPath();
-        for (let i = 0; i <= 18; i++) {
-          const t = i / 18;
-          const x = t * len;
-          const y = Math.sin(t * 14 + blast.t * 18) * thick * 1.6;
+        for (let i = 0; i <= 28; i++) {
+          const u = i / 28;
+          const ang = u * 10 + blast.t * 16;
+          const rad = ball.rad * 0.18 + u * ball.rad * 0.55;
+          const x = ball.x + Math.cos(ang) * rad;
+          const y = ball.y + Math.sin(ang) * rad * 0.72;
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
         ctx.stroke();
       }
-    } else if (kind === "slash") {
+      if (kind === "blob") {
+        fillGlow(ball.x - ball.rad * 0.28, ball.y + ball.rad * 0.16, ball.rad * 0.38, r, g, b, ball.glow * 0.7);
+        fillGlow(ball.x + ball.rad * 0.24, ball.y - ball.rad * 0.12, ball.rad * 0.32, r, g, b, ball.glow * 0.6);
+      }
+      if (blast.hit) {
+        const age = blast.t - blast.hitAt;
+        for (let i = 0; i < 6; i++) {
+          const rr = ball.rad * (0.35 + i * 0.18) * (1 + age * 0.8);
+          ctx.strokeStyle = `rgba(${r},${g},${b},${Math.max(0, 0.55 - i * 0.07 - age * 0.4)})`;
+          ctx.lineWidth = (10 - i) * dpr;
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, rr, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        for (let i = 0; i < 16; i++) {
+          const ang = (i / 16) * Math.PI * 2 + age * 2;
+          const len = ball.rad * (0.7 + (i % 3) * 0.18);
+          ctx.strokeStyle = `rgba(255,255,255,${Math.max(0, 0.55 - age * 0.5)})`;
+          ctx.lineWidth = 3 * dpr;
+          ctx.beginPath();
+          ctx.moveTo(ball.x + Math.cos(ang) * ball.rad * 0.15, ball.y + Math.sin(ang) * ball.rad * 0.15);
+          ctx.lineTo(ball.x + Math.cos(ang) * len, ball.y + Math.sin(ang) * len);
+          ctx.stroke();
+        }
+      }
+    } else if (kind === "beam" || kind === "galick" || kind === "masenko" || kind === "cannon" || kind === "spiral" || kind === "slash") {
+      const ang = Math.atan2(ball.y - o.handY, ball.x - o.handX);
+      const len = Math.max(40, Math.hypot(ball.x - o.handX, ball.y - o.handY) + ball.rad * 0.45);
+      const thick = (kind === "cannon" ? 56 : kind === "galick" ? 34 : kind === "slash" ? 20 : 26) * dpr;
+      const boom = blast.t >= BLAST_HIT_AT ? 1 + (blast.t - BLAST_HIT_AT) * 6 : 1;
+      fillGlow(o.handX, o.handY, 28 * dpr, 255, 255, 255, ball.glow);
       ctx.translate(o.handX, o.handY);
-      ctx.rotate(-0.35 + ball.p * 0.4);
-      ctx.strokeStyle = `rgba(${r},${g},${b},${0.9 * ball.glow})`;
-      ctx.lineWidth = 18 * dpr * (blast.t >= BLAST_HIT_AT ? 2.4 : 1);
+      ctx.rotate(ang);
+      const grd = ctx.createLinearGradient(0, 0, len, 0);
+      grd.addColorStop(0, `rgba(255,255,255,${0.98 * ball.glow})`);
+      grd.addColorStop(0.12, `rgba(${r},${g},${b},${0.95 * ball.glow})`);
+      grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.fillStyle = grd;
       ctx.beginPath();
-      ctx.arc(0, 0, ball.rad * 1.15, -0.7, 1.15);
-      ctx.stroke();
-      ctx.strokeStyle = `rgba(255,255,255,${0.7 * ball.glow})`;
-      ctx.lineWidth = 6 * dpr;
-      ctx.stroke();
-    } else {
-      fillGlow(ball.x, ball.y, ball.rad * (kind === "deathball" ? 1.15 : 1), r, g, b, ball.glow);
-      if (kind === "blob" && blast.t > BLAST_WIND * 0.35) {
-        fillGlow(ball.x - ball.rad * 0.35, ball.y + ball.rad * 0.2, ball.rad * 0.45, r, g, b, ball.glow * 0.7);
-        fillGlow(ball.x + ball.rad * 0.3, ball.y - ball.rad * 0.15, ball.rad * 0.38, r, g, b, ball.glow * 0.6);
+      ctx.ellipse(len * 0.5, 0, len * 0.5, thick * boom, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,255,255,${0.55 * ball.glow})`;
+      ctx.beginPath();
+      ctx.ellipse(len * 0.42, 0, len * 0.42, thick * 0.32 * boom, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (blast.hit) {
+        fillGlow(len, 0, ball.rad, r, g, b, ball.glow);
+        fillGlow(len, 0, ball.rad * 0.4, 255, 255, 255, ball.glow);
       }
     }
 
@@ -1811,8 +1934,13 @@
   function drawFlash() {
     if (flash <= 0) return;
     if (blast) {
-      ctx.fillStyle = `rgba(${blast.r},${blast.g},${blast.b},${flash})`;
-    } else if (flashRgb) {
+      ctx.fillStyle = `rgba(${blast.r},${blast.g},${blast.b},${flash * 0.72})`;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = `rgba(255,255,255,${flash * 0.45})`;
+      ctx.fillRect(0, 0, W, H);
+      return;
+    }
+    if (flashRgb) {
       ctx.fillStyle = `rgba(${flashRgb[0]},${flashRgb[1]},${flashRgb[2]},${flash})`;
     } else {
       ctx.fillStyle = `rgba(255,255,255,${flash})`;
@@ -1831,7 +1959,7 @@
   function render() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    const sh = Math.min(shake, 6.5);
+    const sh = Math.min(shake, blast ? 24 : 6.5);
     const sx = (Math.random() - 0.5) * sh * dpr;
     const sy = (Math.random() - 0.5) * sh * dpr;
     ctx.translate(W / 2 + sx, H * 0.42 + sy);
