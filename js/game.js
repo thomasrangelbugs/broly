@@ -11,6 +11,8 @@
     ssj4: { key: "ssj4", aura: [230, 42, 28], scale: 1.05, shake: 10.5, ms: 4000 },
     god: { key: "god", aura: [255, 58, 18], scale: 1.03, shake: 11.5, ms: 4200, fire: true },
     blue: { key: "blue", aura: [48, 186, 255], scale: 1.04, shake: 12.5, ms: 4500 },
+    bluefp: { key: "bluefp", aura: [40, 70, 255], scale: 1.07, shake: 14.5, ms: 4500, lightning: true },
+    kk20: { key: "kk20", aura: [255, 48, 58], scale: 1.07, shake: 16.5, ms: 4500, fire: true, lightning: true },
     ui: { key: "ui", aura: [232, 242, 255], scale: 1.04, shake: 8.0, silver: true },
     ue: { key: "ue", aura: [186, 48, 255], scale: 1.05, shake: 15.0 },
     rose: { key: "rose", aura: [255, 72, 168], scale: 1.04, shake: 13.2 },
@@ -36,8 +38,9 @@
 
   const ROSTER = [
     { id: "broly", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4"], supreme: "legend" },
-    { id: "goku", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue"], supreme: "ui" },
-    { id: "vegeta", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue"], supreme: "ue" },
+    { id: "sbroly", forms: ["base", "ssj"], supreme: "legend" },
+    { id: "goku", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue", "kk20"], supreme: "ui" },
+    { id: "vegeta", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue", "bluefp"], supreme: "ue" },
     { id: "black", forms: ["base"], supreme: "rose" },
     { id: "gohan", forms: ["base", "ssj", "ssj2", "mystic"], supreme: "beast" },
     { id: "cell", forms: ["c1", "c2", "c3"], supreme: "cultra" },
@@ -45,10 +48,11 @@
     { id: "buu", forms: ["fat", "super", "buuhan"], supreme: "kid" },
   ];
 
-  const SAIYANS = new Set(["broly", "goku", "vegeta", "black", "gohan"]);
+  const SAIYANS = new Set(["broly", "sbroly", "goku", "vegeta", "black", "gohan"]);
 
   const STAGE = {
     broly: "bg",
+    sbroly: "bg",
     goku: "bg",
     vegeta: "bg",
     gohan: "bg",
@@ -71,6 +75,8 @@
   const MUSIC_VOL = 1;
   const AURA_GAIN = 1.65;
   const AURA_VOL = 0.72;
+  const ROSE_AURA_GAIN = 3.6;
+  const ROSE_AURA_VOL = 1;
   let musicIndex = 0;
   let musicBound = false;
   let musicSkip = 0;
@@ -298,6 +304,10 @@
     return form().key === "rose" ? "ki_aura_rose" : "ki_aura";
   }
 
+  function auraVolFor(key) {
+    return key === "ki_aura_rose" ? ROSE_AURA_VOL : AURA_VOL;
+  }
+
   function startLoop(name, volume = 0.4) {
     if (NO_BUZZ.has(name)) return;
     const src = name === "theme" ? audio.theme : audio[name];
@@ -312,7 +322,7 @@
     loops[name] = src;
   }
 
-  function kickAura(volume = 1, forceKey) {
+  function kickAura(volume, forceKey) {
     if (!unlocked) return;
     const key = forceKey || auraKey();
     if (!audio[key]) return;
@@ -320,7 +330,7 @@
     stopLoop(other);
     boostAuraDesktop(audio[key]);
     duckMusic(true);
-    startLoop(key, volume);
+    startLoop(key, auraVolFor(key));
     play("whoosh_storm", 0.5);
   }
 
@@ -328,8 +338,9 @@
     if (loops[name] && name !== "theme") loops[name].volume = Math.max(0, Math.min(1, volume));
   }
 
-  function setAuraVolume(volume) {
-    setLoopVolume(auraKey(), volume);
+  function setAuraVolume() {
+    const key = auraKey();
+    setLoopVolume(key, auraVolFor(key));
   }
 
   function stopLoop(name) {
@@ -368,7 +379,7 @@
       const key = auraKey();
       const other = key === "ki_aura_rose" ? "ki_aura" : "ki_aura_rose";
       stopLoop(other);
-      startLoop(key, AURA_VOL);
+      startLoop(key, auraVolFor(key));
       return;
     }
     stopAuraLoops();
@@ -409,19 +420,21 @@
   }
 
   function boostAuraDesktop(el) {
-    if (isMobile()) return;
     const src = el || audio[auraKey()];
     if (!src) return;
+    const isRose = src === audio.ki_aura_rose;
+    if (isMobile() && !isRose) return;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     if (!audioCtx) audioCtx = new Ctx();
     if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    const gainVal = isRose ? ROSE_AURA_GAIN : AURA_GAIN;
     if (!auraGain) {
       auraGain = audioCtx.createGain();
-      auraGain.gain.value = AURA_GAIN;
+      auraGain.gain.value = gainVal;
       auraGain.connect(audioCtx.destination);
     } else {
-      try { auraGain.gain.value = AURA_GAIN; } catch (_) {}
+      try { auraGain.gain.value = gainVal; } catch (_) {}
     }
     if (auraHookedEls.has(src)) return;
     try {
@@ -957,7 +970,7 @@
     if (selected === "goku") return { kind: "beam", r: 70, g: 170, b: 255, lift: 0.2 };
     if (selected === "vegeta") return { kind: "galick", r: 168, g: 62, b: 255, lift: 0.42 };
     if (selected === "gohan") return { kind: "masenko", r: 255, g: 210, b: 70, lift: 0.12 };
-    if (selected === "broly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1 };
+    if (selected === "broly" || selected === "sbroly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1 };
     if (selected === "black") return { kind: "slash", r: 255, g: 72, b: 168, lift: 0.22 };
     if (selected === "cell") return { kind: "spiral", r: 255, g: 228, b: 70, lift: 0.06 };
     if (selected === "frieza") return { kind: "deathball", r: 90, g: 40, b: 170, lift: 0.34 };
@@ -1464,21 +1477,48 @@
     return images[name] || images[spriteName(key, "idle")] || images[`${key}_${pose}`] || images[`${key}_idle`];
   }
 
-  function layoutActor(img, cx, ground, height, maxW) {
-    if (!img) return { x: cx, y: ground, w: 0, h: 0 };
-    const t = performance.now();
-    const breathe = 1 + Math.sin(t * 0.0032) * (charging ? 0.02 : 0.008);
-    const squash = charging ? 1 + Math.sin(t * 0.018) * 0.012 : 1;
-    let dh = height * breathe;
-    let dw = dh * (img.width / img.height) * squash;
+  function fitSprite(img, height, maxW) {
+    if (!img || !img.width) return { w: 0, h: 0 };
+    let dh = height;
+    let dw = dh * (img.width / img.height);
     const m = metrics();
     const margin = 18 * dpr * camZoom;
-    const maxH = Math.max(40, ground - m.pad.t - margin);
+    const maxH = Math.max(40, m.ground - m.pad.t - margin);
     const maxSide = Math.max(40, W - m.pad.l - m.pad.r - margin * 2);
     const capW = Math.min(maxW || maxSide, maxSide);
     if (dh > maxH) { const s = maxH / dh; dh = maxH; dw *= s; }
     if (dw > capW) { const s = capW / dw; dw = capW; dh *= s; }
-    return { x: cx - dw / 2, y: ground - dh, w: dw, h: dh };
+    return { w: dw, h: dh };
+  }
+
+  function motionBox(size) {
+    const t = performance.now();
+    const breathe = 1 + Math.sin(t * 0.0032) * (charging ? 0.02 : 0.008);
+    const squash = charging ? 1 + Math.sin(t * 0.018) * 0.012 : 1;
+    const h = size.h * breathe;
+    const w = size.w * squash;
+    return { x: W / 2 - w / 2, y: metrics().ground - h, w, h };
+  }
+
+  function layoutChar(key, useCharge) {
+    const m = metrics();
+    const f = form();
+    const idleImg = spriteFor(key, false);
+    const img = spriteFor(key, useCharge);
+    const baseH = H * m.charH * f.scale;
+    const idleFit = fitSprite(idleImg, baseH, m.charMaxW);
+    if (!useCharge || !img || img === idleImg) return { img: idleImg, box: motionBox(idleFit) };
+    const roomW = Math.max(40, W - m.pad.l - m.pad.r - 24 * dpr);
+    let chargeFit = fitSprite(img, idleFit.h, roomW);
+    if (idleFit.h > 0 && chargeFit.h > 0 && chargeFit.h < idleFit.h) {
+      const s = idleFit.h / chargeFit.h;
+      let w = chargeFit.w * s;
+      let h = chargeFit.h * s;
+      const maxH = Math.max(40, m.ground - m.pad.t - 18 * dpr);
+      const s2 = Math.min(1, maxH / h, roomW / w);
+      chargeFit = { w: w * s2, h: h * s2 };
+    }
+    return { img, box: motionBox(chargeFit) };
   }
 
   function drawActor(img, box) {
@@ -1792,10 +1832,10 @@
     }
 
     const f = form();
-    const m = metrics();
     const useCharge = charging || state === "final" || state === "transform" || !!blast;
-    const img = spriteFor(f.key, useCharge);
-    Object.assign(charBox, layoutActor(img, W / 2, m.ground, H * m.charH * f.scale, m.charMaxW));
+    const posed = layoutChar(f.key, useCharge);
+    const img = posed.img;
+    Object.assign(charBox, posed.box);
     const lite = flash > 0.5;
 
     drawBackground();

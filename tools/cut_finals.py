@@ -172,6 +172,8 @@ def main():
             process_frieza(p)
     for p in sorted(SPR.glob("gohan_*.png")):
         knock_chroma_green(p)
+    for p in sorted(SPR.glob("sbroly_*.png")):
+        process_cell(p)
 
 
 if __name__ == "__main__":
