@@ -12,9 +12,10 @@ python -m http.server 8080
 
 Depois acesse `http://localhost:8080`.
 
-- **Toque no retrato** (ou escolha na lista) para trocar de personagem: Broly, Goku, Vegeta, Gohan, Goku Black, Cell, Freeza e Majin Buu.
+- **Toque no retrato** (ou escolha na lista) para trocar de personagem: Broly, Super Broly, Goku, Vegeta, Gohan, Goku Black, Cell, Freeza e Majin Buu.
 - **Segure no personagem** para carregar a transformação daquela trilha.
 - **Solte** para parar na forma atual.
+- Formas extras na trilha: Goku **Kaio-ken x20** e Vegeta **Blue Full Power**.
 - No fim da trilha, toque na **forma suprema** (Legend, UI, UE, Rose, Beast, Cell Ultra, Black Freeza, Kid Buu — conforme o personagem).
 - **Desenhe um círculo** na tela (fora do personagem) para o ataque de energia.
 - **Toque 3 vezes** no personagem para reiniciar.
