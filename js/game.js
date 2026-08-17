@@ -964,38 +964,46 @@
     return Math.hypot(first.x - last.x, first.y - last.y) < avgR * 0.75;
   }
 
+  const BLAST_WIND = 2.35;
+  const BLAST_FLY = 0.8;
+  const BLAST_HIT_AT = BLAST_WIND + BLAST_FLY;
+  const BLAST_END = BLAST_HIT_AT + 1.45;
+
   function blastProfile() {
     const f = form();
     const [ar, ag, ab] = f.aura;
-    if (selected === "goku") return { kind: "beam", r: 70, g: 170, b: 255, lift: 0.2 };
-    if (selected === "vegeta") return { kind: "galick", r: 168, g: 62, b: 255, lift: 0.42 };
-    if (selected === "gohan") return { kind: "masenko", r: 255, g: 210, b: 70, lift: 0.12 };
-    if (selected === "broly" || selected === "sbroly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1 };
-    if (selected === "black") return { kind: "slash", r: 255, g: 72, b: 168, lift: 0.22 };
-    if (selected === "cell") return { kind: "spiral", r: 255, g: 228, b: 70, lift: 0.06 };
-    if (selected === "frieza") return { kind: "deathball", r: 90, g: 40, b: 170, lift: 0.34 };
-    if (selected === "buu") return { kind: "blob", r: 255, g: 110, b: 190, lift: 0.16 };
-    return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.28 };
+    if (selected === "goku") return { kind: "beam", r: 70, g: 170, b: 255, lift: 0.18, hx: 0.5, hy: 0.5, handSep: 0.05 };
+    if (selected === "vegeta") return { kind: "galick", r: 168, g: 62, b: 255, lift: 0.38, hx: 0.64, hy: 0.62, handSep: 0.045 };
+    if (selected === "gohan") return { kind: "masenko", r: 255, g: 210, b: 70, lift: 0.1, hx: 0.5, hy: 0.16, handSep: 0.04 };
+    if (selected === "broly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1, hx: 0.52, hy: 0.46, handSep: 0.06 };
+    if (selected === "sbroly") return { kind: "cannon", r: 110, g: 255, b: 70, lift: 0.1, hx: 0.7, hy: 0.48, handSep: 0.05 };
+    if (selected === "black") return { kind: "slash", r: 255, g: 72, b: 168, lift: 0.16, hx: 0.5, hy: 0.5, handSep: 0.05 };
+    if (selected === "cell") return { kind: "spiral", r: 255, g: 228, b: 70, lift: 0.08, hx: 0.68, hy: 0.46, handSep: 0.05 };
+    if (selected === "frieza") return { kind: "deathball", r: 90, g: 40, b: 170, lift: 0.32, hx: 0.58, hy: 0.4, handSep: 0.035 };
+    if (selected === "buu") return { kind: "blob", r: 255, g: 110, b: 190, lift: 0.14, hx: 0.56, hy: 0.48, handSep: 0.06 };
+    return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.28, hx: 0.62, hy: 0.46, handSep: 0.05 };
   }
 
   function fireBlast() {
-    if (blast || charging || transforming || blastCd > 0 || state === "load") return;
+    if (!isFinalForm() || blast || charging || transforming || blastCd > 0 || state === "load") return;
     const p = blastProfile();
     blast = {
       t: 0, kind: p.kind, r: p.r, g: p.g, b: p.b, lift: p.lift,
+      hx: p.hx, hy: p.hy, handSep: p.handSep,
       hit: false, launched: false,
       dirt: 0, pebbles: 0,
       sfx: [
         { t: 0, name: "charge_up", v: 1 },
-        { t: 0.12, name: "whoosh", v: 0.9 },
-        { t: 0.95, name: "whoosh_deep", v: 1 },
-        { t: 0.98, name: "whoosh_storm", v: 1 },
-        { t: 1.05, name: "whoosh_wind", v: 0.92 },
-        { t: 1.52, name: "explosion", v: 1 },
-        { t: 1.54, name: "explosion2", v: 0.95 },
-        { t: 1.62, name: "shockwave", v: 1 },
-        { t: 1.70, name: "bass", v: 1 },
-        { t: 1.82, name: "impact", v: 0.95 },
+        { t: 0.18, name: "whoosh", v: 0.85 },
+        { t: BLAST_WIND * 0.45, name: "charge_up", v: 0.7 },
+        { t: BLAST_WIND - 0.12, name: "whoosh_deep", v: 1 },
+        { t: BLAST_WIND - 0.08, name: "whoosh_storm", v: 1 },
+        { t: BLAST_WIND, name: "whoosh_wind", v: 0.92 },
+        { t: BLAST_HIT_AT, name: "explosion", v: 1 },
+        { t: BLAST_HIT_AT + 0.02, name: "explosion2", v: 0.95 },
+        { t: BLAST_HIT_AT + 0.1, name: "shockwave", v: 1 },
+        { t: BLAST_HIT_AT + 0.18, name: "bass", v: 1 },
+        { t: BLAST_HIT_AT + 0.3, name: "impact", v: 0.95 },
       ],
     };
     camTarget = 1.08;
@@ -1020,9 +1028,9 @@
     blast.t += dt;
     playBlastSfx();
 
-    if (blast.t < 0.95) {
-      shake = 2.2 + blast.t * 2.2;
-      if (Math.random() < 0.35) burst("aura", 1);
+    if (blast.t < BLAST_WIND) {
+      shake = 2.2 + (blast.t / BLAST_WIND) * 3.4;
+      if (Math.random() < 0.4) burst("aura", 1);
     } else if (!blast.launched) {
       blast.launched = true;
       camTarget = 1.14;
@@ -1034,10 +1042,10 @@
     }
 
     if (blast.launched && !blast.hit) {
-      shake = 6 + (blast.t - 0.95) * 4;
+      shake = 6 + (blast.t - BLAST_WIND) * 4;
     }
 
-    if (blast.t >= 1.52 && !blast.hit) {
+    if (blast.t >= BLAST_HIT_AT && !blast.hit) {
       blast.hit = true;
       blast.hitAt = blast.t;
       camTarget = 1.18;
@@ -1066,7 +1074,7 @@
       }
     }
 
-    if (blast.t > 2.9) {
+    if (blast.t > BLAST_END) {
       duckMusic(false);
       blast = null;
       blastCd = 0.4;
@@ -1110,7 +1118,7 @@
       return;
     }
 
-    if (!charging && !transforming && !blast) {
+    if (isFinalForm() && !charging && !transforming && !blast) {
       drawing = true;
       gesture = [p];
     }
@@ -1471,8 +1479,7 @@
     ctx.restore();
   }
 
-  function spriteFor(key, useCharge) {
-    const pose = useCharge ? "charge" : "idle";
+  function spriteFor(key, pose) {
     const name = spriteName(key, pose);
     return images[name] || images[spriteName(key, "idle")] || images[`${key}_${pose}`] || images[`${key}_idle`];
   }
@@ -1493,32 +1500,33 @@
 
   function motionBox(size) {
     const t = performance.now();
-    const breathe = 1 + Math.sin(t * 0.0032) * (charging ? 0.02 : 0.008);
-    const squash = charging ? 1 + Math.sin(t * 0.018) * 0.012 : 1;
+    const tense = charging || !!blast;
+    const breathe = 1 + Math.sin(t * 0.0032) * (tense ? 0.02 : 0.008);
+    const squash = tense ? 1 + Math.sin(t * 0.018) * 0.012 : 1;
     const h = size.h * breathe;
     const w = size.w * squash;
     return { x: W / 2 - w / 2, y: metrics().ground - h, w, h };
   }
 
-  function layoutChar(key, useCharge) {
+  function layoutChar(key, pose) {
     const m = metrics();
     const f = form();
-    const idleImg = spriteFor(key, false);
-    const img = spriteFor(key, useCharge);
+    const idleImg = spriteFor(key, "idle");
+    const img = spriteFor(key, pose);
     const baseH = H * m.charH * f.scale;
     const idleFit = fitSprite(idleImg, baseH, m.charMaxW);
-    if (!useCharge || !img || img === idleImg) return { img: idleImg, box: motionBox(idleFit) };
+    if (pose === "idle" || !img || img === idleImg) return { img: idleImg, box: motionBox(idleFit) };
     const roomW = Math.max(40, W - m.pad.l - m.pad.r - 24 * dpr);
-    let chargeFit = fitSprite(img, idleFit.h, roomW);
-    if (idleFit.h > 0 && chargeFit.h > 0 && chargeFit.h < idleFit.h) {
-      const s = idleFit.h / chargeFit.h;
-      let w = chargeFit.w * s;
-      let h = chargeFit.h * s;
+    let posedFit = fitSprite(img, idleFit.h, roomW);
+    if (idleFit.h > 0 && posedFit.h > 0 && posedFit.h < idleFit.h) {
+      const s = idleFit.h / posedFit.h;
+      let w = posedFit.w * s;
+      let h = posedFit.h * s;
       const maxH = Math.max(40, m.ground - m.pad.t - 18 * dpr);
       const s2 = Math.min(1, maxH / h, roomW / w);
-      chargeFit = { w: w * s2, h: h * s2 };
+      posedFit = { w: w * s2, h: h * s2 };
     }
-    return { img, box: motionBox(chargeFit) };
+    return { img, box: motionBox(posedFit) };
   }
 
   function drawActor(img, box) {
@@ -1632,6 +1640,12 @@
         );
       }
     }
+    const fireName = id === "broly" ? `${c.supreme}_fire` : `${id}_${c.supreme}_fire`;
+    if (!images[fireName]) {
+      jobs.push(
+        loadImage(`assets/sprites/${fireName}.png`).then((img) => { images[fireName] = img; }).catch(() => {})
+      );
+    }
     if (jobs.length) await Promise.all(jobs);
   }
 
@@ -1667,37 +1681,46 @@
   }
 
   function blastOrigin() {
-    const cx = charBox.x + charBox.w / 2;
-    const cy = charBox.y + charBox.h * 0.42;
-    const masenko = blast && blast.kind === "masenko";
+    const hx = blast && blast.hx != null ? blast.hx : 0.62;
+    const hy = blast && blast.hy != null ? blast.hy : 0.46;
     return {
-      cx,
-      cy,
-      handX: cx + charBox.w * (masenko ? 0 : 0.22),
-      handY: masenko ? charBox.y + charBox.h * 0.2 : cy,
+      cx: charBox.x + charBox.w / 2,
+      cy: charBox.y + charBox.h * 0.42,
+      handX: charBox.x + charBox.w * hx,
+      handY: charBox.y + charBox.h * hy,
     };
+  }
+
+  function blastHandPoints() {
+    const o = blastOrigin();
+    const dx = charBox.w * (blast.handSep || 0.05);
+    const dy = charBox.h * 0.012;
+    return [
+      { x: o.handX - dx, y: o.handY + dy },
+      { x: o.handX + dx, y: o.handY - dy },
+    ];
   }
 
   function blastBall() {
     const o = blastOrigin();
     const lift = blast.lift || 0.28;
-    if (blast.t < 0.95) {
-      const p = blast.t / 0.95;
-      return { x: o.handX, y: o.handY, rad: (14 + p * 52) * dpr, glow: 0.55 + p * 0.45, p: 0 };
+    if (blast.t < BLAST_WIND) {
+      const p = blast.t / BLAST_WIND;
+      return { x: o.handX, y: o.handY, rad: (12 + p * 58) * dpr, glow: 0.5 + p * 0.5, p: 0 };
     }
-    if (blast.t < 1.52) {
-      const p = (blast.t - 0.95) / 0.57;
+    if (blast.t < BLAST_HIT_AT) {
+      const p = (blast.t - BLAST_WIND) / BLAST_FLY;
       return {
-        x: o.handX + W * 0.3 * p,
+        x: o.handX + W * 0.32 * p,
         y: o.handY - H * lift * p,
         rad: (66 + p * 28) * dpr,
         glow: 1,
         p,
       };
     }
-    const p = Math.min(1, (blast.t - 1.52) / 0.32);
+    const p = Math.min(1, (blast.t - BLAST_HIT_AT) / 0.32);
     return {
-      x: o.handX + W * 0.3,
+      x: o.handX + W * 0.32,
       y: o.handY - H * lift,
       rad: (90 + p * 240) * dpr,
       glow: Math.max(0, 1 - p),
@@ -1721,59 +1744,62 @@
     const { r, g, b, kind } = blast;
     const ball = blastBall();
     const o = blastOrigin();
+    const hands = blastHandPoints();
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
+    if (blast.t < BLAST_WIND) {
+      const p = blast.t / BLAST_WIND;
+      for (const h of hands) {
+        fillGlow(h.x, h.y, ball.rad * (0.42 + p * 0.18), r, g, b, ball.glow);
+      }
+      fillGlow(o.handX, o.handY, ball.rad * (0.55 + p * 0.45), r, g, b, ball.glow);
+      ctx.restore();
+      return;
+    }
+
     if (kind === "beam" || kind === "galick" || kind === "masenko" || kind === "cannon" || kind === "spiral") {
-      if (blast.t < 0.95) {
-        fillGlow(ball.x, ball.y, ball.rad, r, g, b, ball.glow);
-      } else {
-        const ang = Math.atan2(ball.y - o.handY, ball.x - o.handX);
-        const len = Math.max(40, Math.hypot(ball.x - o.handX, ball.y - o.handY) + ball.rad * 0.4);
-        const thick = (kind === "cannon" ? 48 : kind === "spiral" ? 10 : kind === "galick" ? 28 : 22) * dpr;
-        const boom = blast.t >= 1.52 ? 1 + (blast.t - 1.52) * 5 : 1;
-        ctx.translate(o.handX, o.handY);
-        ctx.rotate(ang);
-        const grd = ctx.createLinearGradient(0, 0, len, 0);
-        grd.addColorStop(0, `rgba(255,255,255,${0.95 * ball.glow})`);
-        grd.addColorStop(0.18, `rgba(${r},${g},${b},${0.92 * ball.glow})`);
-        grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
-        ctx.fillStyle = grd;
+      const ang = Math.atan2(ball.y - o.handY, ball.x - o.handX);
+      const len = Math.max(40, Math.hypot(ball.x - o.handX, ball.y - o.handY) + ball.rad * 0.4);
+      const thick = (kind === "cannon" ? 48 : kind === "spiral" ? 10 : kind === "galick" ? 28 : 22) * dpr;
+      const boom = blast.t >= BLAST_HIT_AT ? 1 + (blast.t - BLAST_HIT_AT) * 5 : 1;
+      ctx.translate(o.handX, o.handY);
+      ctx.rotate(ang);
+      const grd = ctx.createLinearGradient(0, 0, len, 0);
+      grd.addColorStop(0, `rgba(255,255,255,${0.95 * ball.glow})`);
+      grd.addColorStop(0.18, `rgba(${r},${g},${b},${0.92 * ball.glow})`);
+      grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.ellipse(len * 0.5, 0, len * 0.5, thick * boom, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (kind === "spiral") {
+        ctx.strokeStyle = `rgba(255,255,210,${0.7 * ball.glow})`;
+        ctx.lineWidth = 2 * dpr;
         ctx.beginPath();
-        ctx.ellipse(len * 0.5, 0, len * 0.5, thick * boom, 0, 0, Math.PI * 2);
-        ctx.fill();
-        if (kind === "spiral") {
-          ctx.strokeStyle = `rgba(255,255,210,${0.7 * ball.glow})`;
-          ctx.lineWidth = 2 * dpr;
-          ctx.beginPath();
-          for (let i = 0; i <= 18; i++) {
-            const t = i / 18;
-            const x = t * len;
-            const y = Math.sin(t * 14 + blast.t * 18) * thick * 1.6;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.stroke();
+        for (let i = 0; i <= 18; i++) {
+          const t = i / 18;
+          const x = t * len;
+          const y = Math.sin(t * 14 + blast.t * 18) * thick * 1.6;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
+        ctx.stroke();
       }
     } else if (kind === "slash") {
-      if (blast.t < 0.95) {
-        fillGlow(ball.x, ball.y, ball.rad * 0.7, r, g, b, ball.glow);
-      } else {
-        ctx.translate(o.cx, o.cy);
-        ctx.rotate(-0.55 + ball.p * 0.35);
-        ctx.strokeStyle = `rgba(${r},${g},${b},${0.9 * ball.glow})`;
-        ctx.lineWidth = 18 * dpr * (blast.t >= 1.52 ? 2.4 : 1);
-        ctx.beginPath();
-        ctx.arc(0, 0, ball.rad * 1.4, -0.9, 1.4);
-        ctx.stroke();
-        ctx.strokeStyle = `rgba(255,255,255,${0.7 * ball.glow})`;
-        ctx.lineWidth = 6 * dpr;
-        ctx.stroke();
-      }
+      ctx.translate(o.handX, o.handY);
+      ctx.rotate(-0.35 + ball.p * 0.4);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${0.9 * ball.glow})`;
+      ctx.lineWidth = 18 * dpr * (blast.t >= BLAST_HIT_AT ? 2.4 : 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, ball.rad * 1.15, -0.7, 1.15);
+      ctx.stroke();
+      ctx.strokeStyle = `rgba(255,255,255,${0.7 * ball.glow})`;
+      ctx.lineWidth = 6 * dpr;
+      ctx.stroke();
     } else {
       fillGlow(ball.x, ball.y, ball.rad * (kind === "deathball" ? 1.15 : 1), r, g, b, ball.glow);
-      if (kind === "blob" && blast.t > 0.4) {
+      if (kind === "blob" && blast.t > BLAST_WIND * 0.35) {
         fillGlow(ball.x - ball.rad * 0.35, ball.y + ball.rad * 0.2, ball.rad * 0.45, r, g, b, ball.glow * 0.7);
         fillGlow(ball.x + ball.rad * 0.3, ball.y - ball.rad * 0.15, ball.rad * 0.38, r, g, b, ball.glow * 0.6);
       }
@@ -1832,8 +1858,8 @@
     }
 
     const f = form();
-    const useCharge = charging || state === "final" || state === "transform" || !!blast;
-    const posed = layoutChar(f.key, useCharge);
+    const pose = blast ? "fire" : (charging || state === "final" || state === "transform" ? "charge" : "idle");
+    const posed = layoutChar(f.key, pose);
     const img = posed.img;
     Object.assign(charBox, posed.box);
     const lite = flash > 0.5;
