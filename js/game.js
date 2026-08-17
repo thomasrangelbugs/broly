@@ -16,6 +16,7 @@
     ui: { key: "ui", aura: [232, 242, 255], scale: 1.04, shake: 8.0, silver: true },
     ue: { key: "ue", aura: [186, 48, 255], scale: 1.05, shake: 15.0 },
     rose: { key: "rose", aura: [255, 72, 168], scale: 1.04, shake: 13.2 },
+    restrained: { key: "restrained", aura: [48, 210, 200], scale: 1.01, shake: 4.4, ms: 3500 },
     legend: { key: "legend", aura: [86, 255, 78], scale: 1.16, shake: 20.0, lightning: true },
     beast: { key: "beast", aura: [248, 220, 255], scale: 1.14, shake: 18.0, lightning: true },
     mystic: { key: "mystic", aura: [255, 246, 214], scale: 1.06, shake: 14.0, ms: 4200, silver: true },
@@ -37,7 +38,7 @@
   };
 
   const ROSTER = [
-    { id: "broly", forms: ["base", "ssj"], supreme: "legend" },
+    { id: "broly", forms: ["base", "restrained", "ssj"], supreme: "legend" },
     { id: "sbroly", forms: ["base", "ssj"], supreme: "legend" },
     { id: "goku", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue", "kk20"], supreme: "ui" },
     { id: "vegeta", forms: ["base", "ssj", "ssj2", "ssj3", "ssj4", "god", "blue", "bluefp"], supreme: "ue" },
@@ -982,11 +983,11 @@
     };
     if (selected === "gohan") return {
       kind: "masenko", r: 255, g: 220, b: 80, lift: 0.04, aim: "fwd",
-      hx: 0.76, hy: 0.21, h1x: 0.74, h1y: 0.20, h2x: 0.78, h2y: 0.22,
+      hx: 0.88, hy: 0.18, h1x: 0.86, h1y: 0.16, h2x: 0.90, h2y: 0.20,
     };
     if (selected === "broly") return {
       kind: "cannon", r: 110, g: 255, b: 80, lift: 0.05, aim: "fwd",
-      hx: 0.88, hy: 0.30, h1x: 0.84, h1y: 0.30, h2x: 0.92, h2y: 0.30,
+      hx: 0.82, hy: 0.32, h1x: 0.78, h1y: 0.30, h2x: 0.86, h2y: 0.34,
     };
     if (selected === "sbroly") return {
       kind: "cannon", r: 120, g: 255, b: 70, lift: 0.05, aim: "fwd",
@@ -1002,7 +1003,7 @@
     };
     if (selected === "frieza") return {
       kind: "deathball", r: 150, g: 70, b: 255, lift: 0.04, aim: "fwd",
-      hx: 0.44, hy: 0.33, h1x: 0.40, h1y: 0.38, h2x: 0.48, h2y: 0.28,
+      hx: 0.91, hy: 0.25, h1x: 0.89, h1y: 0.25, h2x: 0.93, h2y: 0.25,
     };
     if (selected === "buu") return {
       kind: "blob", r: 255, g: 120, b: 200, lift: 0.05, aim: "fwd",
@@ -1559,8 +1560,14 @@
     const f = form();
     const idleImg = spriteFor(key, "idle");
     const img = spriteFor(key, pose);
-    const baseH = H * m.charH * f.scale;
-    const idleFit = fitSprite(idleImg, baseH, m.charMaxW);
+    let scale = f.scale;
+    let maxW = m.charMaxW;
+    if (selected === "broly" && key === "legend") {
+      scale = 1.38;
+      maxW = m.portrait ? W * 0.86 : W * 0.46;
+    }
+    const baseH = H * m.charH * scale;
+    const idleFit = fitSprite(idleImg, baseH, maxW);
     if (pose === "idle" || !img || img === idleImg) return { img: idleImg, box: motionBox(idleFit) };
     const roomW = Math.max(40, W - m.pad.l - m.pad.r - 24 * dpr);
     let posedFit = fitSprite(img, idleFit.h, roomW);

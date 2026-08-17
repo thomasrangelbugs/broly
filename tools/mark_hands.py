@@ -10,12 +10,12 @@ OUT = Path(__file__).resolve().parents[1] / "tools" / "_hands"
 CUR = {
     "goku_ui_fire.png": (0.88, 0.33, 0.84, 0.33, 0.93, 0.33),
     "vegeta_ue_fire.png": (0.86, 0.40, 0.80, 0.38, 0.92, 0.40),
-    "gohan_beast_fire.png": (0.76, 0.21, 0.73, 0.19, 0.79, 0.22),
-    "legend_fire.png": (0.88, 0.30, 0.82, 0.30, 0.94, 0.30),
+    "gohan_beast_fire.png": (0.88, 0.18, 0.86, 0.16, 0.90, 0.20),
+    "legend_fire.png": (0.82, 0.32, 0.78, 0.30, 0.86, 0.34),
     "sbroly_legend_fire.png": (0.84, 0.32, 0.76, 0.32, 0.92, 0.32),
     "black_rose_fire.png": (0.82, 0.34, 0.74, 0.34, 0.90, 0.34),
     "cell_cultra_fire.png": (0.84, 0.31, 0.80, 0.28, 0.88, 0.34),
-    "frieza_fblack_fire.png": (0.49, 0.38, 0.47, 0.44, 0.51, 0.32),
+    "frieza_fblack_fire.png": (0.91, 0.25, 0.89, 0.25, 0.93, 0.25),
     "buu_kid_fire.png": (0.70, 0.36, 0.62, 0.36, 0.78, 0.36),
 }
 
