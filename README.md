@@ -53,6 +53,21 @@ Broly/
 └── tools/                  # processamento de sprites
 ```
 
+## Requisitos
+
+- Navegador moderno com suporte a **Canvas**, **Web Audio** e **PWA**
+- Servidor HTTP local recomendado (`python -m http.server`) para cache offline e instalação
+- **Python 3.10+** (opcional) — scripts em `tools/` para sprites; **Pillow** e **numpy** se for reprocessar assets
+- **Git LFS** — necessário para clonar `music2.mp3` e `music3.mp3` (>100 MB)
+
+## Deploy
+
+Publique a pasta inteira em **Netlify**, **GitHub Pages** ou **Vercel** (site estático). Atualize a versão do cache em `sw.js` após mudanças nos assets.
+
+## Repositório
+
+[thomasrangelbugs/broly](https://github.com/thomasrangelbugs/broly)
+
 ## Autor
 
-Thomas Rangel Bugs
+**Thomas Rangel Bugs** — [github.com/thomasrangelbugs](https://github.com/thomasrangelbugs)
