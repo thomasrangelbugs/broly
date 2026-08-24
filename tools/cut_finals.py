@@ -174,6 +174,8 @@ def main():
         knock_chroma_green(p)
     for p in sorted(SPR.glob("sbroly_*.png")):
         process_cell(p)
+    for p in sorted(SPR.glob("thor_*.png")):
+        process_cell(p)
     for p in sorted(SPR.glob("*_fire.png")):
         process_cell(p)
 

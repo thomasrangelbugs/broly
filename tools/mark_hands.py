@@ -17,6 +17,7 @@ CUR = {
     "cell_cultra_fire.png": (0.84, 0.31, 0.80, 0.28, 0.88, 0.34),
     "frieza_fblack_fire.png": (0.91, 0.25, 0.89, 0.25, 0.93, 0.25),
     "buu_kid_fire.png": (0.70, 0.36, 0.62, 0.36, 0.78, 0.36),
+    "thor_odin_fire.png": (0.78, 0.36, 0.74, 0.34, 0.82, 0.38),
 }
 
 OUT.mkdir(exist_ok=True)

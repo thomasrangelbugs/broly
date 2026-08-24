@@ -35,6 +35,8 @@
     super: { key: "super", aura: [255, 90, 170], scale: 1.12, shake: 8.0, ms: 3800 },
     buuhan: { key: "buuhan", aura: [255, 186, 220], scale: 1.14, shake: 12.0, ms: 4200 },
     kid: { key: "kid", aura: [255, 70, 110], scale: 0.82, shake: 18.0, lightning: true },
+    endgame: { key: "endgame", aura: [200, 210, 230], scale: 1.04, shake: 6.5, ms: 3800 },
+    odin: { key: "odin", aura: [255, 36, 28], scale: 1.18, shake: 20.0 },
   };
 
   const ROSTER = [
@@ -47,6 +49,7 @@
     { id: "cell", forms: ["c1", "c2", "c3"], supreme: "cultra" },
     { id: "frieza", forms: ["f1", "f2", "f3", "ffinal", "f100", "golden"], supreme: "fblack" },
     { id: "buu", forms: ["fat", "super", "buuhan"], supreme: "kid" },
+    { id: "thor", forms: ["endgame"], supreme: "odin" },
   ];
 
   const SAIYANS = new Set(["broly", "sbroly", "goku", "vegeta", "black", "gohan"]);
@@ -61,6 +64,7 @@
     cell: "bg_ring",
     frieza: "bg_namek",
     buu: "bg_hell",
+    thor: "bg_city",
   };
 
   const images = {};
@@ -301,19 +305,28 @@
     } catch (_) {}
   }
 
+  function usesRoseAura() {
+    const k = form().key;
+    return k === "rose" || k === "odin";
+  }
+
   function auraKey() {
-    return form().key === "rose" ? "ki_aura_rose" : "ki_aura";
+    return usesRoseAura() ? "ki_aura_rose" : "ki_aura";
   }
 
   function auraVolFor(key) {
     return key === "ki_aura_rose" ? ROSE_AURA_VOL : AURA_VOL;
   }
 
-  function startLoop(name, volume = 0.4) {
+  function startLoop(name, volume = 0.4, once = false) {
     if (NO_BUZZ.has(name)) return;
     const src = name === "theme" ? audio.theme : audio[name];
     if (!src || !unlocked) return;
-    src.loop = true;
+    if (once && loops[name] && !src.paused) {
+      src.volume = name === "theme" ? 1 : Math.max(0, Math.min(1, volume));
+      return;
+    }
+    src.loop = !once;
     src.volume = name === "theme" ? 1 : Math.max(0, Math.min(1, volume));
     if (name === "ki_aura" || name === "ki_aura_rose") {
       try { src.currentTime = name === "ki_aura" ? auraCue : 0; } catch (_) {}
@@ -323,7 +336,7 @@
     loops[name] = src;
   }
 
-  function kickAura(volume, forceKey) {
+  function kickAura(volume, forceKey, once = false) {
     if (!unlocked) return;
     const key = forceKey || auraKey();
     if (!audio[key]) return;
@@ -331,7 +344,7 @@
     stopLoop(other);
     boostAuraDesktop(audio[key]);
     duckMusic(true);
-    startLoop(key, auraVolFor(key));
+    startLoop(key, auraVolFor(key), once || isFinalForm());
     play("whoosh_storm", 0.5);
   }
 
@@ -380,7 +393,7 @@
       const key = auraKey();
       const other = key === "ki_aura_rose" ? "ki_aura" : "ki_aura_rose";
       stopLoop(other);
-      startLoop(key, auraVolFor(key));
+      startLoop(key, auraVolFor(key), isFinalForm());
       return;
     }
     stopAuraLoops();
@@ -614,6 +627,11 @@
     }
     if (selected === "buu") {
       play("roar3", 0.48);
+      return;
+    }
+    if (selected === "thor") {
+      play("roar2", 0.52);
+      play("whoosh_deep", 0.4);
     }
   }
 
@@ -840,7 +858,7 @@
     raceCry();
     rumble(epic ? [40, 40, 80, 40, 120] : [30, 40, 70]);
     duckMusic(true, toFinal ? 0.32 : 0.88);
-    kickAura(AURA_VOL, toFinal === "rose" ? "ki_aura_rose" : undefined);
+    kickAura(AURA_VOL, (toFinal === "rose" || toFinal === "odin") ? "ki_aura_rose" : undefined, !!toFinal);
     if (toFinal) playSupremeBurst();
     else {
       play("explosion", epic ? 0.85 : 0.5);
@@ -1008,6 +1026,10 @@
     if (selected === "buu") return {
       kind: "blob", r: 255, g: 120, b: 200, lift: 0.05, aim: "fwd",
       hx: 0.70, hy: 0.36, h1x: 0.62, h1y: 0.36, h2x: 0.78, h2y: 0.36,
+    };
+    if (selected === "thor") return {
+      kind: "thunder", r: 255, g: 48, b: 36, lift: 0.04, aim: "fwd",
+      hx: 0.90, hy: 0.21, h1x: 0.82, h1y: 0.21, h2x: 0.96, h2y: 0.21,
     };
     return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.08, aim: "fwd", hx: 0.5, hy: 0.48, h1x: 0.42, h1y: 0.48, h2x: 0.58, h2y: 0.48 };
   }
@@ -1235,7 +1257,7 @@
         if (Math.random() < 0.85) burst("aura", 4);
         if (Math.random() < 0.22) burst("spark", 2);
         if (Math.random() < 0.12) burst("rock", 1);
-        if (f.lightning && Math.random() < (f.key === "ssj2" ? 0.16 : 0.08)) spawnBolt();
+        if ((f.lightning || f.electric) && Math.random() < (f.electric ? 0.24 : f.key === "ssj2" ? 0.16 : 0.08)) spawnBolt();
         if (f.fire && Math.random() < 0.55) burst("fire", 4);
         if (Math.random() < 0.05) spawnRing();
         if (Math.random() < 0.2) spawnLines(2);
@@ -1258,7 +1280,7 @@
       if (Math.random() < 0.55) burst("dust", 2);
       if (Math.random() < 1) burst("aura", isEpicFinal(f.key) ? 12 : 8);
       if (Math.random() < 0.22) burst("spark", 3);
-      if ((f.silver || f.key === "rose" || isEpicFinal(f.key)) && Math.random() < (isEpicFinal(f.key) ? 0.2 : 0.1)) spawnBolt();
+      if ((f.electric || f.silver || f.key === "rose" || isEpicFinal(f.key)) && Math.random() < (f.electric || isEpicFinal(f.key) ? 0.24 : 0.1)) spawnBolt();
       if (f.fire && Math.random() < 0.4) burst("fire", 3);
       if (Math.random() < 0.1) spawnRing();
       if (Math.random() < 0.22) spawnLines(3);
@@ -1269,10 +1291,13 @@
       if (Math.random() < (legend ? 0.95 : 0.75)) burst("aura", legend ? 5 : 3);
       if (Math.random() < (legend ? 0.28 : 0.16)) spawnRing();
       if (Math.random() < (legend ? 0.32 : 0.2)) spawnLines(legend ? 3 : 2);
-      if ((f.silver || f.key === "rose" || f.key === "ue" || legend) && Math.random() < (legend ? 0.14 : 0.08)) spawnBolt();
+      if ((f.electric || f.silver || f.key === "rose" || f.key === "ue" || legend) && Math.random() < (f.electric || legend ? 0.18 : 0.08)) spawnBolt();
     }
 
-    if (state === "idle" && !isFinalForm() && Math.random() < 0.08) burst("dust", 1);
+    if (state === "idle" && !isFinalForm()) {
+      if (Math.random() < 0.08) burst("dust", 1);
+      if (f.electric && Math.random() < 0.14) spawnBolt();
+    }
 
     for (const p of particles) {
       p.x += p.vx * dt * 60;
@@ -1511,13 +1536,14 @@
   }
 
   function drawBolts() {
+    const electric = form().electric;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (const b of bolts) {
-      ctx.strokeStyle = `rgba(255,255,210,${b.life})`;
+      ctx.strokeStyle = electric ? `rgba(170,220,255,${b.life})` : `rgba(255,255,210,${b.life})`;
       ctx.lineWidth = b.width * dpr;
-      ctx.shadowColor = "#fff6a8";
-      ctx.shadowBlur = 12;
+      ctx.shadowColor = electric ? "#9ad8ff" : "#fff6a8";
+      ctx.shadowBlur = electric ? 16 : 12;
       ctx.beginPath();
       ctx.moveTo(b.pts[0].x, b.pts[0].y);
       for (let i = 1; i < b.pts.length; i++) ctx.lineTo(b.pts[i].x, b.pts[i].y);
@@ -1566,6 +1592,10 @@
       scale = 1.38;
       maxW = m.portrait ? W * 0.86 : W * 0.46;
     }
+    if (selected === "thor" && key === "odin") {
+      scale = 1.34;
+      maxW = m.portrait ? W * 0.86 : W * 0.44;
+    }
     const baseH = H * m.charH * scale;
     const idleFit = fitSprite(idleImg, baseH, maxW);
     if (pose === "idle" || !img || img === idleImg) return { img: idleImg, box: motionBox(idleFit) };
@@ -1595,7 +1625,7 @@
   }
 
   function isEpicFinal(k) {
-    return k === "legend" || k === "beast" || k === "ue" || k === "ui" || k === "cultra" || k === "fblack" || k === "rose" || k === "kid";
+    return k === "legend" || k === "beast" || k === "ue" || k === "ui" || k === "cultra" || k === "fblack" || k === "rose" || k === "kid" || k === "odin";
   }
 
   function layoutSelect() {
@@ -1887,6 +1917,30 @@
       if (kind === "blob") {
         fillGlow(ball.x - ball.rad * 0.28, ball.y + ball.rad * 0.16, ball.rad * 0.38, r, g, b, ball.glow * 0.7);
         fillGlow(ball.x + ball.rad * 0.24, ball.y - ball.rad * 0.12, ball.rad * 0.32, r, g, b, ball.glow * 0.6);
+      }
+      if (kind === "thunder") {
+        ctx.strokeStyle = `rgba(210,240,255,${0.75 * ball.glow})`;
+        ctx.lineWidth = 3 * dpr;
+        ctx.shadowColor = "#9ad8ff";
+        ctx.shadowBlur = 14 * dpr;
+        for (let i = 0; i < 7; i++) {
+          const ang = (i / 7) * Math.PI * 2 + blast.t * 9;
+          const len = ball.rad * (0.55 + (i % 3) * 0.22);
+          ctx.beginPath();
+          ctx.moveTo(ball.x, ball.y);
+          let px = ball.x;
+          let py = ball.y;
+          for (let s = 1; s <= 4; s++) {
+            const u = s / 4;
+            const nx = ball.x + Math.cos(ang) * len * u + (s % 2 ? 10 : -10) * dpr;
+            const ny = ball.y + Math.sin(ang) * len * u;
+            ctx.lineTo(nx, ny);
+            px = nx;
+            py = ny;
+          }
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
       }
       if (blast.hit) {
         const age = blast.t - blast.hitAt;
