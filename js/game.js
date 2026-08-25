@@ -35,8 +35,8 @@
     super: { key: "super", aura: [255, 90, 170], scale: 1.12, shake: 8.0, ms: 3800 },
     buuhan: { key: "buuhan", aura: [255, 186, 220], scale: 1.14, shake: 12.0, ms: 4200 },
     kid: { key: "kid", aura: [255, 70, 110], scale: 0.82, shake: 18.0, lightning: true },
-    endgame: { key: "endgame", aura: [200, 210, 230], scale: 1.04, shake: 6.5, ms: 3800 },
-    odin: { key: "odin", aura: [255, 36, 28], scale: 1.18, shake: 20.0 },
+    endgame: { key: "endgame", aura: [90, 255, 70], scale: 1.06, shake: 8.0, ms: 3800, lightning: true },
+    odin: { key: "odin", aura: [70, 255, 50], scale: 1.20, shake: 20.0, lightning: true },
   };
 
   const ROSTER = [
@@ -64,7 +64,7 @@
     cell: "bg_ring",
     frieza: "bg_namek",
     buu: "bg_hell",
-    thor: "bg_city",
+    thor: "bg",
   };
 
   const images = {};
@@ -307,7 +307,7 @@
 
   function usesRoseAura() {
     const k = form().key;
-    return k === "rose" || k === "odin";
+    return k === "rose";
   }
 
   function auraKey() {
@@ -858,7 +858,7 @@
     raceCry();
     rumble(epic ? [40, 40, 80, 40, 120] : [30, 40, 70]);
     duckMusic(true, toFinal ? 0.32 : 0.88);
-    kickAura(AURA_VOL, (toFinal === "rose" || toFinal === "odin") ? "ki_aura_rose" : undefined, !!toFinal);
+    kickAura(AURA_VOL, toFinal === "rose" ? "ki_aura_rose" : undefined, !!toFinal);
     if (toFinal) playSupremeBurst();
     else {
       play("explosion", epic ? 0.85 : 0.5);
@@ -1028,8 +1028,8 @@
       hx: 0.70, hy: 0.36, h1x: 0.62, h1y: 0.36, h2x: 0.78, h2y: 0.36,
     };
     if (selected === "thor") return {
-      kind: "thunder", r: 255, g: 48, b: 36, lift: 0.04, aim: "fwd",
-      hx: 0.90, hy: 0.21, h1x: 0.82, h1y: 0.21, h2x: 0.96, h2y: 0.21,
+      kind: "cannon", r: 90, g: 255, b: 70, lift: 0.05, aim: "fwd",
+      hx: 0.88, hy: 0.22, h1x: 0.82, h1y: 0.20, h2x: 0.94, h2y: 0.24,
     };
     return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.08, aim: "fwd", hx: 0.5, hy: 0.48, h1x: 0.42, h1y: 0.48, h2x: 0.58, h2y: 0.48 };
   }
