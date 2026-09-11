@@ -35,8 +35,8 @@
     super: { key: "super", aura: [255, 90, 170], scale: 1.12, shake: 8.0, ms: 3800 },
     buuhan: { key: "buuhan", aura: [255, 186, 220], scale: 1.14, shake: 12.0, ms: 4200 },
     kid: { key: "kid", aura: [255, 70, 110], scale: 0.82, shake: 18.0, lightning: true },
-    endgame: { key: "endgame", aura: [90, 255, 70], scale: 1.06, shake: 8.0, ms: 3800, lightning: true },
-    odin: { key: "odin", aura: [70, 255, 50], scale: 1.20, shake: 20.0, lightning: true },
+    endgame: { key: "endgame", aura: [132, 42, 220], scale: 1.03, shake: 6.8, ms: 3800, dark: true },
+    odin: { key: "odin", aura: [176, 78, 255], scale: 1.05, shake: 15.5, dark: true, sparkle: true },
   };
 
   const ROSTER = [
@@ -64,7 +64,7 @@
     cell: "bg_ring",
     frieza: "bg_namek",
     buu: "bg_hell",
-    thor: "bg",
+    thor: "bg_city",
   };
 
   const images = {};
@@ -150,6 +150,10 @@
 
   function spriteName(formKey, pose) {
     if (selected === "broly") return `${formKey}_${pose}`;
+    if (selected === "thor") {
+      if (pose === "fire") return "thor_odin_fire";
+      return `thor_endgame_${pose}`;
+    }
     return `${selected}_${formKey}_${pose}`;
   }
 
@@ -306,8 +310,7 @@
   }
 
   function usesRoseAura() {
-    const k = form().key;
-    return k === "rose";
+    return form().key === "rose" || selected === "thor";
   }
 
   function auraKey() {
@@ -858,7 +861,7 @@
     raceCry();
     rumble(epic ? [40, 40, 80, 40, 120] : [30, 40, 70]);
     duckMusic(true, toFinal ? 0.32 : 0.88);
-    kickAura(AURA_VOL, toFinal === "rose" ? "ki_aura_rose" : undefined, !!toFinal);
+    kickAura(AURA_VOL, (toFinal === "rose" || selected === "thor") ? "ki_aura_rose" : undefined, !!toFinal);
     if (toFinal) playSupremeBurst();
     else {
       play("explosion", epic ? 0.85 : 0.5);
@@ -1028,8 +1031,8 @@
       hx: 0.70, hy: 0.36, h1x: 0.62, h1y: 0.36, h2x: 0.78, h2y: 0.36,
     };
     if (selected === "thor") return {
-      kind: "cannon", r: 90, g: 255, b: 70, lift: 0.05, aim: "fwd",
-      hx: 0.88, hy: 0.22, h1x: 0.82, h1y: 0.20, h2x: 0.94, h2y: 0.24,
+      kind: "cannon", r: 168, g: 70, b: 255, lift: 0.05, aim: "fwd",
+      hx: 0.74, hy: 0.28, h1x: 0.66, h1y: 0.27, h2x: 0.80, h2y: 0.29,
     };
     return { kind: "ball", r: ar, g: ag, b: ab, lift: 0.08, aim: "fwd", hx: 0.5, hy: 0.48, h1x: 0.42, h1y: 0.48, h2x: 0.58, h2y: 0.48 };
   }
@@ -1292,6 +1295,7 @@
       if (Math.random() < (legend ? 0.28 : 0.16)) spawnRing();
       if (Math.random() < (legend ? 0.32 : 0.2)) spawnLines(legend ? 3 : 2);
       if ((f.electric || f.silver || f.key === "rose" || f.key === "ue" || legend) && Math.random() < (f.electric || legend ? 0.18 : 0.08)) spawnBolt();
+      if (f.sparkle && Math.random() < 0.55) burst("spark", 2);
     }
 
     if (state === "idle" && !isFinalForm()) {
@@ -1439,6 +1443,21 @@
     const rx = box.w * 0.7 * pulse * boost * (0.92 + power * 0.12);
     const ry = box.h * 0.7 * pulse * boost * (0.92 + power * 0.12);
     ctx.save();
+    if (f.dark) {
+      ctx.globalCompositeOperation = "source-over";
+      for (let i = 3; i >= 1; i--) {
+        const scale = 0.86 + i * 0.16;
+        const a = ((supreme ? 0.34 : 0.18) * power) / i;
+        const grd = ctx.createRadialGradient(cx, cy, Math.min(rx, ry) * 0.2, cx, cy, Math.max(rx, ry) * scale);
+        grd.addColorStop(0, "rgba(0,0,0,0)");
+        grd.addColorStop(0.42, `rgba(16,4,28,${a * 0.4})`);
+        grd.addColorStop(0.7, `rgba(36,8,64,${a})`);
+        grd.addColorStop(1, "rgba(10,0,20,0)");
+        ctx.fillStyle = grd;
+        traceAuraPath(cx, cy, rx * scale, ry * scale, t * 0.85, i + 3, 64);
+        ctx.fill();
+      }
+    }
     ctx.globalCompositeOperation = "lighter";
     for (let i = layers; i >= 1; i--) {
       const scale = 0.72 + i * 0.14;
@@ -1458,6 +1477,20 @@
       ctx.fillStyle = `rgba(255,255,255,${0.07 * power})`;
       traceAuraPath(cx, cy, rx * 0.62, ry * 0.58, t * 1.1, 2, 48);
       ctx.fill();
+    }
+    if (f.sparkle && (charging || supreme)) {
+      const n = supreme ? 22 : 10;
+      for (let i = 0; i < n; i++) {
+        const ang = t * 0.0016 + i * 0.62;
+        const rad = Math.max(rx, ry) * (0.28 + (i % 6) * 0.1);
+        const x = cx + Math.cos(ang + i * 0.35) * rad * (0.7 + Math.sin(t * 0.007 + i) * 0.18);
+        const y = cy + Math.sin(ang * 1.15 + i) * rad * 0.9;
+        const tw = 0.35 + 0.65 * Math.abs(Math.sin(t * 0.018 + i * 1.6));
+        ctx.fillStyle = `rgba(255,228,255,${0.62 * tw * Math.min(1.2, power)})`;
+        ctx.beginPath();
+        ctx.arc(x, y, (1.1 + tw * 2.4) * dpr, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.restore();
   }
@@ -1593,8 +1626,7 @@
       maxW = m.portrait ? W * 0.86 : W * 0.46;
     }
     if (selected === "thor" && key === "odin") {
-      scale = 1.34;
-      maxW = m.portrait ? W * 0.86 : W * 0.44;
+      scale = 1.06;
     }
     const baseH = H * m.charH * scale;
     const idleFit = fitSprite(idleImg, baseH, maxW);
